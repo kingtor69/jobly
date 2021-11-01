@@ -50,6 +50,9 @@ class Company {
    * */
 
   static async findAll() {
+    const searchField = req.body.filter || 'name';
+    const serchTerm = `%${req.body.search_term}%` || '';
+
     const companiesRes = await db.query(
           `SELECT handle,
                   name,
@@ -57,7 +60,9 @@ class Company {
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
-           ORDER BY name`);
+           WHERE $1 iLIKE $2
+           ORDER BY $3`,
+           [ searchFiels, searchTerm, searchField ]);
     return companiesRes.rows;
   }
 

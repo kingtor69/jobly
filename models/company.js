@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, NotFoundError } = require("../expressError");
+const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
@@ -49,56 +49,42 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
-    const companiesRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
-    return companiesRes.rows;
-  }
+  static async findAll(filter = {}) {
+    let query = `SELECT handle,
+                        name,
+                        description,
+                        num_employees AS "numEmployees",
+                        logo_url AS "logoUrl"
+                  FROM companies`;
+    let filters = [];
+    let values = [];
+    const { minEmployees, maxEmployees, name } = filter;
 
-  static async findFiltered(filter) {
-    // assumes data has been verified, including minEmployees must be < maxEmployees if both are present
-    let filtering = "";
-    const values = [];
-    let i = 0;
-    if ("name" in filter) {
-      filtering += `name ILIKE $${i+1}`;
-      values.push(`'%${filter.name}%'`);
-      i++;
+    if (minEmployees > maxEmployees) {
+      throw new ExpressError('Minimum can not be greater than maximum.', 400);
     };
-    if ("minEmployees" in filter) {
-      if (i > 0) {
-        filtering += ` AND `;
-      };
-      filtering += `num_employees >= ${filter.minEmployees}`;
-      values.push(`%${filter.minEmployees}%`);
-      i++;
+
+    if (minEmployees) {
+      values.push(minEmployees);
+      filters.push(`num_employees >= $${values.length}`);
     };
-    if ("maxEmployees" in filter) {
-      if (i > 0) {
-        filtering += ` AND `;
-      };
-      filtering += `num_employees <= ${filter.maxEmployees}`;
-      values.push(`%${filter.maxEmployees}%`);
-      i++;
+    if (maxEmployees) {
+      values.push(maxEmployees);
+      filters.push(`num_employees <= $${values.length}`);
     };
-    const companiesRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
-           FROM companies
-           WHERE ${filtering}
-           ORDER BY name`,
-           values);
+    if (name) {
+      values.push(`%${name}%`);
+      filters.push(`name ILIKE $${values.length}`)
+    }
+    
+    if (filters.length > 0) {
+      query += " WHERE " + filters.join(" AND ");
+    };
+
+    query += " ORDER BY name";
+    const companiesRes = await db.query(query, values);
     return companiesRes.rows;
-  }
+  };
 
   /** Given a company handle, return data about company.
    *

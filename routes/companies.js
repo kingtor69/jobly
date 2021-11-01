@@ -51,19 +51,16 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
+  const query = req.query;
   try {
-    let companies;
-    let filter = req.body;
-    if ("minEmployees" in filter || "maxEmployees" in filter || "name" in filter) {
-      if ("minEmployees" in filter && "maxEmployees" in filter) {
-        if (filter.minEmployees >= filter.maxEmployees) {
-          throw new ExpressError('minimum must be less than maximum in filter parameters', 400);
-        };
-      };
-      companies = await Company.findFiltered(filter);
-    } else {
-      companies = await Company.findAll();
-    }
+    if (query.minEmployees) query.minEmployees = parseInt(query.minEmployees);
+    if (query.maxEmployees) query.maxEmployees = parseInt(query.maxEmployees);
+  } catch (e) {
+    return next(new ExpressError("minEmployees and maxEmployees must be integers", 400));
+  };
+
+  try {
+    const companies = await Company.findAll(query);
     return res.json({ companies });
   } catch (err) {
     return next(err);

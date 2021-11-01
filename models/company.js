@@ -61,6 +61,45 @@ class Company {
     return companiesRes.rows;
   }
 
+  static async findFiltered(filter) {
+    // assumes data has been verified, including minEmployees must be < maxEmployees if both are present
+    let filtering = "";
+    const values = [];
+    let i = 0;
+    if ("name" in filter) {
+      filtering += `name ILIKE $${i+1}`;
+      values.push(`'%${filter.name}%'`);
+      i++;
+    };
+    if ("minEmployees" in filter) {
+      if (i > 0) {
+        filtering += ` AND `;
+      };
+      filtering += `num_employees >= ${filter.minEmployees}`;
+      values.push(`%${filter.minEmployees}%`);
+      i++;
+    };
+    if ("maxEmployees" in filter) {
+      if (i > 0) {
+        filtering += ` AND `;
+      };
+      filtering += `num_employees <= ${filter.maxEmployees}`;
+      values.push(`%${filter.maxEmployees}%`);
+      i++;
+    };
+    const companiesRes = await db.query(
+          `SELECT handle,
+                  name,
+                  description,
+                  num_employees AS "numEmployees",
+                  logo_url AS "logoUrl"
+           FROM companies
+           WHERE ${filtering}
+           ORDER BY name`,
+           values);
+    return companiesRes.rows;
+  }
+
   /** Given a company handle, return data about company.
    *
    * Returns { handle, name, description, numEmployees, logoUrl, jobs }

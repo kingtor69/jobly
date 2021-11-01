@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError } = require("../expressError");
+const { BadRequestError, ExpressError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
@@ -52,7 +52,18 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   try {
-    const companies = await Company.findAll();
+    let companies;
+    let filter = req.body;
+    if ("minEmployees" in filter || "maxEmployees" in filter || "name" in filter) {
+      if ("minEmployees" in filter && "maxEmployees" in filter) {
+        if (filter.minEmployees >= filter.maxEmployees) {
+          throw new ExpressError('minimum must be less than maximum in filter parameters', 400);
+        };
+      };
+      companies = await Company.findFiltered(filter);
+    } else {
+      companies = await Company.findAll();
+    }
     return res.json({ companies });
   } catch (err) {
     return next(err);

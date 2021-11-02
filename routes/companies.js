@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError } = require("../expressError");
+const { BadRequestError, ExpressError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
@@ -51,8 +51,16 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
+  const query = req.query;
   try {
-    const companies = await Company.findAll();
+    if (query.minEmployees) query.minEmployees = parseInt(query.minEmployees);
+    if (query.maxEmployees) query.maxEmployees = parseInt(query.maxEmployees);
+  } catch (e) {
+    return next(new ExpressError("minEmployees and maxEmployees must be integers", 400));
+  };
+
+  try {
+    const companies = await Company.findAll(query);
     return res.json({ companies });
   } catch (err) {
     return next(err);

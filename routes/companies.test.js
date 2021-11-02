@@ -12,6 +12,7 @@ const {
   commonAfterAll,
   u1Token,
 } = require("./_testCommon");
+const Company = require("../models/company");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -106,6 +107,43 @@ describe("GET /companies", function () {
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(500);
   });
+});
+
+
+describe("Filtering GET companies results", () => {
+  beforeEach(async () => {
+    await Company.create({
+      handle: "comp1",
+      name: "Company 1",
+      description: "Describe Company 1.",
+      numEmployees: 5,
+      logoUrl: "http://comp1.img"
+    });
+    await Company.create({
+      handle: "comp2",
+      name: "Company 2",
+      description: "Describe Company 2.",
+      numEmployees: 13,
+      logoUrl: "http://comp2.img"
+    });
+    await Company.create({
+      handle: "comp3",
+      name: "Three's Company",
+      description: "Describe Company 3.",
+      numEmployees: 3,
+      logoUrl: "http://comp3.img"
+    });
+  });
+  test("filter by part of name", async () => {
+    const resp = await request(app)
+      .get("/companies") 
+      .send({
+        name: "comp"
+      });
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.companies.length).toEqual(3);
+  });
+
 });
 
 /************************************** GET /companies/:handle */

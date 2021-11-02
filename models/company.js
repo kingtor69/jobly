@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, NotFoundError } = require("../expressError");
+const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
@@ -49,22 +49,42 @@ class createCompany {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
-    const searchField = req.body.filter || 'name';
-    const serchTerm = `%${req.body.search_term}%` || '';
+  static async findAll(filter = {}) {
+    let query = `SELECT handle,
+                        name,
+                        description,
+                        num_employees AS "numEmployees",
+                        logo_url AS "logoUrl"
+                  FROM companies`;
+    let filters = [];
+    let values = [];
+    const { minEmployees, maxEmployees, name } = filter;
 
-    const companiesRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
-           FROM companies
-           WHERE $1 iLIKE $2
-           ORDER BY $3`,
-           [ searchFiels, searchTerm, searchField ]);
+    if (minEmployees > maxEmployees) {
+      throw new ExpressError('Minimum can not be greater than maximum.', 400);
+    };
+
+    if (minEmployees) {
+      values.push(minEmployees);
+      filters.push(`num_employees >= $${values.length}`);
+    };
+    if (maxEmployees) {
+      values.push(maxEmployees);
+      filters.push(`num_employees <= $${values.length}`);
+    };
+    if (name) {
+      values.push(`%${name}%`);
+      filters.push(`name ILIKE $${values.length}`)
+    }
+    
+    if (filters.length > 0) {
+      query += " WHERE " + filters.join(" AND ");
+    };
+
+    query += " ORDER BY name";
+    const companiesRes = await db.query(query, values);
     return companiesRes.rows;
-  }
+  };
 
   /** Given a company handle, return data about company.
    *

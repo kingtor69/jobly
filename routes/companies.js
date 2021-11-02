@@ -3,6 +3,7 @@
 /** Routes for companies. */
 
 const jsonschema = require("jsonschema");
+const companySearch = require('../schemas/companySearch.json');
 const express = require("express");
 
 const { BadRequestError, ExpressError } = require("../expressError");
@@ -52,14 +53,16 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   const query = req.query;
-  try {
-    if (query.minEmployees) query.minEmployees = parseInt(query.minEmployees);
-    if (query.maxEmployees) query.maxEmployees = parseInt(query.maxEmployees);
-  } catch (e) {
-    return next(new ExpressError("minEmployees and maxEmployees must be integers", 400));
+  const isValid = jsonschema.validate(req.body, companySearch);
+  if (!isValid) {
+    const errors = result.errors.map(e => e.stack);
+    return next(new ExpressError(errors, 400));
   };
 
   try {
+    if (query.minEmployees) query.minEmployees = parseInt(query.minEmployees);
+    if (query.maxEmployees) query.maxEmployees = parseInt(query.maxEmployees);
+  
     const companies = await Company.findAll(query);
     return res.json({ companies });
   } catch (err) {

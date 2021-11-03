@@ -53,7 +53,6 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   const query = req.query;
-  const isValid = jsonschema.validate(req.body, companySearch);
   if (!isValid) {
     const errors = result.errors.map(e => e.stack);
     return next(new ExpressError(errors, 400));

@@ -188,7 +188,7 @@ describe("Filtering GET companies results", () => {
     const badResp2 = await request(app)
       .get("/companies")
       .query({
-        minEmployees: "nineteen"
+        minEmployees: "Vivaldi"
       });
       expect(badResp2.statusCode).toEqual(400);
   });

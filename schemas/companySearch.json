@@ -12,11 +12,7 @@
             "maxEmployees": 10
         }
     ],
-    "required": [
-        "name",
-        "minEmployees",
-        "maxEmployees"
-    ],
+    "required": [],
     "properties": {
         "name": {
             "$id": "#/properties/name",

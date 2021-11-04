@@ -109,63 +109,43 @@ describe("GET /companies", function () {
   });
 });
 
-
 describe("Filtering GET companies results", () => {
-  beforeEach(async () => {
-    await Company.create({
-      handle: "comp1",
-      name: "Company 1",
-      description: "Describe Company 1.",
-      numEmployees: 5,
-      logoUrl: "http://comp1.img"
-    });
-    await Company.create({
-      handle: "comp2",
-      name: "Company 2",
-      description: "Describe Company 2.",
-      numEmployees: 13,
-      logoUrl: "http://comp2.img"
-    });
-    await Company.create({
-      handle: "comp3",
-      name: "Three's Company",
-      description: "Describe Company 3.",
-      numEmployees: 3,
-      logoUrl: "http://comp3.img"
-    });
-  });
   test("filter by part of name", async () => {
     const resp = await request(app)
       .get("/companies") 
       .query({
-        name: "comp"
+        name: "c"
       });
     expect(resp.statusCode).toEqual(200);
     expect(resp.body.companies.length).toEqual(3);
   });
-  test("filter by number of employees", async () => {
-    const resp1 = await request(app)
+  test("filter by minimum number of employees", async () => {
+    const resp = await request(app)
       .get("/companies")
       .query({
-        minEmployees: 5
+        minEmployees: 2
       });
-    expect(resp1.statusCode).toEqual(200);
-    expect(resp1.body.companies.length).toEqual(2);
-    const resp2 = await request(app)
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.companies.length).toEqual(2);
+  });
+  test("filter by maximum number of employees", async () => {
+    const resp = await request(app)
       .get("/companies")
       .query({
-        maxEmployees: 5
+        maxEmployees: 1
       });
-    expect(resp2.statusCode).toEqual(200);
-    expect(resp2.body.companies.length).toEqual(5);
-    const resp3 = await request(app)
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.companies.length).toEqual(1);
+  });
+  test("filter by min and max number of employees", async () => {
+    const resp = await request(app)
       .get("/companies")
       .query({
-        minEmployees: 5,
-        maxEmployees: 10
+        minEmployees: 1,
+        maxEmployees: 2
       });
-    expect(resp3.statusCode).toEqual(200);
-    expect(resp3.body.companies.length).toEqual(1);
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.companies.length).toEqual(2);
   });
   test("valid data but zero results", async() => {
     const resp = await request(app)
@@ -176,23 +156,24 @@ describe("Filtering GET companies results", () => {
     expect(resp.statusCode).toEqual(200);
     expect(resp.body.companies.length).toEqual(0);
   });
-  test("invalid data", async () => {
-    const badResp1 = await request(app)
+  test("invalid data: min >= max", async () => {
+    const badResp = await request(app)
       .get("/companies")
       .query({
         minEmployees: 10,
         maxEmployees: 1
       });
-    expect(badResp1.statusCode).toEqual(400);
-    expect(badResp1.body.error.message).toEqual("Minimum can not be greater than maximum.");
-    const badResp2 = await request(app)
+    expect(badResp.statusCode).toEqual(400);
+    expect(badResp.body.error.message).toEqual("Minimum can not be greater than maximum.");
+  });
+  test("invalid data: min NaN", async () => {
+      const badResp = await request(app)
       .get("/companies")
       .query({
         minEmployees: "Vivaldi"
       });
-      expect(badResp2.statusCode).toEqual(400);
+      expect(badResp.statusCode).toEqual(400);
   });
-
 });
 
 /************************************** GET /companies/:handle */

@@ -27,9 +27,9 @@ const router = new express.Router();
 
 router.post("/", ensureLoggedIn, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, companyNewSchema);
-    if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
+    const validation = jsonschema.validate(req.body, companyNewSchema);
+    if (!validation.valid) {
+      const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
 
@@ -53,15 +53,20 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   const query = req.query;
-  if (!isValid) {
-    const errors = result.errors.map(e => e.stack);
-    return next(new ExpressError(errors, 400));
+  if (query) {
+    const validation = jsonschema.validate(query, companyUpdateSchema);
+    if (!validation.valid) {
+      const errors = result.errors.map(e => e.stack);
+      return next(new ExpressError(errors, 400));
+    };
+    query.minEmployees = parseInt(query.minEmployees);
+    query.maxEmployees = parseInt(query.maxEmployees);
+    if (query.minEmployees > query.maxEmployees) {
+      return next(new ExpressError("Minimum can not be greater than maximum.", 400))
+    };
   };
 
   try {
-    if (query.minEmployees) query.minEmployees = parseInt(query.minEmployees);
-    if (query.maxEmployees) query.maxEmployees = parseInt(query.maxEmployees);
-  
     const companies = await Company.findAll(query);
     return res.json({ companies });
   } catch (err) {
@@ -99,9 +104,9 @@ router.get("/:handle", async function (req, res, next) {
 
 router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, companyUpdateSchema);
-    if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
+    const validation = jsonschema.validate(req.body, companyUpdateSchema);
+    if (!validation.valid) {
+      const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
 

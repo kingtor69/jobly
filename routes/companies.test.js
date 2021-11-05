@@ -120,15 +120,14 @@ describe("Filtering GET companies results", () => {
     expect(resp.body.companies.length).toEqual(3);
   });
 
-  test.only("filter by minimum number of employees", async () => {
+  test("filter by minimum number of employees", async () => {
     const resp = await request(app)
       .get("/companies")
       .query({
         minEmployees: 2
       });
-    expect(true).toEqual(true);
-    // expect(resp.statusCode).toEqual(200);
-    // expect(resp.body.companies.length).toEqual(2);
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.companies.length).toEqual(2);
   });
   
   test("filter by maximum number of employees", async () => {
@@ -168,14 +167,6 @@ describe("Filtering GET companies results", () => {
       });
     expect(badResp.statusCode).toEqual(400);
     expect(badResp.body.error.message).toEqual("Minimum can not be greater than maximum.");
-  });
-  test("invalid data: min NaN", async () => {
-      const badResp = await request(app)
-      .get("/companies")
-      .query({
-        minEmployees: "Vivaldi"
-      });
-      expect(badResp.statusCode).toEqual(400);
   });
 });
 

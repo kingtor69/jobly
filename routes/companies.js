@@ -12,6 +12,7 @@ const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
+const companySearchSchema = require("../schemas/companySearch.json");
 
 const router = new express.Router();
 
@@ -60,7 +61,7 @@ router.get("/", async function (req, res, next) {
     if (query.minEmployees > query.maxEmployees) {
       return next(new ExpressError("Minimum can not be greater than maximum.", 400))
     };
-    const validation = jsonschema.validate(query, companyUpdateSchema);
+    const validation = jsonschema.validate(query, companySearchSchema);
     if (!validation.valid) {
       const errors = result.errors.map(e => e.stack);
       return next(new ExpressError(errors, 400));

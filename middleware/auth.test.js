@@ -117,7 +117,7 @@ describe("ensureAdmin", () => {
 
 describe("ensureAdminOrIsRightUser", () => {
   test("admin with wrong username does NOT throw error", () => {
-    expect.assertions(1);
+    expect.assertions(0);
     const req = {
       params: { 
         username: "test"

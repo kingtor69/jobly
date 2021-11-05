@@ -53,16 +53,17 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   const query = req.query;
+  debugger;
   if (query) {
+    if (query.minEmployees !== undefined) query.minEmployees = +query.minEmployees;
+    if (query.maxEmployees !== undefined) query.maxEmployees = +query.maxEmployees;
+    if (query.minEmployees > query.maxEmployees) {
+      return next(new ExpressError("Minimum can not be greater than maximum.", 400))
+    };
     const validation = jsonschema.validate(query, companyUpdateSchema);
     if (!validation.valid) {
       const errors = result.errors.map(e => e.stack);
       return next(new ExpressError(errors, 400));
-    };
-    query.minEmployees = parseInt(query.minEmployees);
-    query.maxEmployees = parseInt(query.maxEmployees);
-    if (query.minEmployees > query.maxEmployees) {
-      return next(new ExpressError("Minimum can not be greater than maximum.", 400))
     };
   };
 

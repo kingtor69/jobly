@@ -5,12 +5,15 @@ const { UnauthorizedError } = require("../expressError");
 const {
   authenticateJWT,
   ensureLoggedIn,
+  ensureAdmin,
+  ensureAdminOrIsRightUser
 } = require("./auth");
 
 
 const { SECRET_KEY } = require("../config");
 const testJwt = jwt.sign({ username: "test", isAdmin: false }, SECRET_KEY);
 const badJwt = jwt.sign({ username: "test", isAdmin: false }, "wrong");
+const wrongUserJwt = jwt.sign({ username: "wrong", isAdmin: false }, SECRET_KEY);
 
 
 describe("authenticateJWT", function () {
@@ -77,4 +80,94 @@ describe("ensureLoggedIn", function () {
     };
     ensureLoggedIn(req, res, next);
   });
+});
+
+describe("ensureAdmin", () => {
+  test("admin does NOT throw error", () => {
+    expect.assertions(1);
+    const req = {};
+    const res = { 
+      locals: { 
+        user: { 
+          username: "test", is_admin: true 
+        } 
+      } 
+    };
+    const next = function(err) {
+      expect(err).toBeFalsy();
+    };
+    ensureAdmin(req, res, next);
+  });
+  test("non-admin DOES throw error", () => {
+    expect.assertions(2);
+    const req = {};
+    const res = { 
+      locals: { 
+        user: { 
+          username: "test", is_admin: false 
+        } 
+      } 
+    };
+    const next = function(err) {
+      expect(err).toBeTruthy();
+    };
+    ensureAdmin(req, res, next);
+  });
+});
+
+describe("ensureAdminOrIsRightUser", () => {
+  test("admin with wrong username does NOT throw error", () => {
+    expect.assertions(1);
+    const req = {
+      params: { 
+        username: "test"
+      } 
+    };
+    const res = { 
+      locals: { 
+        user: { 
+          username: "admin", is_admin: true 
+        } 
+      } 
+    };
+    const next = function(err) {
+      expect(err).toBeFalsy();
+    };
+    ensureAdminOrIsRightUser(req, res, next);
+  });
+  test("right user does NOT throw error", () => {
+    expect.assertions(0);
+    const req = {
+      params: { 
+        username: "test"
+      } 
+    };
+    const res = {
+      locals: {
+        user: {
+          username: "test", is_admin: false
+        }
+      }
+    };
+    const next = function(err) {
+      expect(err).toBeFalsy();
+    };
+    ensureAdminOrIsRightUser(req, res, next);
+  });
+  test("wrong user who is NOT admin DOES throw error", () => {
+    expect.assertions(1);
+    const req = {};
+    const res = { 
+      locals: { 
+        user: { 
+          username: "wrong", is_admin: false 
+        } 
+      } 
+    };
+    const next = function(err) {
+      expect(err).toBeTruthy();
+    };
+    ensureAdminOrIsRightUser(req, res, next);
+  });
+  // wrongUserJwt
 });

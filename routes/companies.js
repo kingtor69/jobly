@@ -26,7 +26,7 @@ const router = new express.Router();
  * Authorization required: login
  */
 
-router.post("/", ensureLoggedIn, async function (req, res, next) {
+router.post("/", ensureAdmin, async function (req, res, next) {
   try {
     const validation = jsonschema.validate(req.body, companyNewSchema);
     if (!validation.valid) {
@@ -54,7 +54,6 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   const query = req.query;
-  debugger;
   if (query) {
     if (query.minEmployees !== undefined) query.minEmployees = +query.minEmployees;
     if (query.maxEmployees !== undefined) query.maxEmployees = +query.maxEmployees;
@@ -104,7 +103,7 @@ router.get("/:handle", async function (req, res, next) {
  * Authorization required: login
  */
 
-router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
+router.patch("/:handle", ensureAdmin, async function (req, res, next) {
   try {
     const validation = jsonschema.validate(req.body, companyUpdateSchema);
     if (!validation.valid) {

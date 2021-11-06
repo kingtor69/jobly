@@ -241,11 +241,12 @@ describe("GET /companies/:handle", function () {
 
 describe("PATCH /companies/:handle", function () {
   test("works for admins", async function () {
-    c1.name = "C1-new";
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
-          company: c1
+          company: {
+            name: "ch-ch-ch-changes1"
+          }
         })
         .send({
           user: {

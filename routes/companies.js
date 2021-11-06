@@ -106,6 +106,7 @@ router.get("/:handle", async function (req, res, next) {
 router.patch("/:handle", ensureAdmin, async function (req, res, next) {
   try {
     const comp = await Company.get(req.params.handle);
+    debugger;
     for (let key of req.body.company) {
       if (key !== "handle" && req.body.company[key] === comp[key]) {
         comp[key] = req.body.company[key];
@@ -137,6 +138,5 @@ router.delete("/:handle", ensureAdmin, async function (req, res, next) {
     return next(err);
   }
 });
-
 
 module.exports = router;

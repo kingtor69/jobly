@@ -32,13 +32,13 @@ router.post("/", ensureAdmin, async function (req, res, next) {
     if (!validation.valid) {
       const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);
-    }
+    };
 
     const company = await Company.create(req.body);
     return res.status(201).json({ company });
   } catch (err) {
     return next(err);
-  }
+  };
 });
 
 /** GET /  =>
@@ -105,7 +105,8 @@ router.get("/:handle", async function (req, res, next) {
 
 router.patch("/:handle", ensureAdmin, async function (req, res, next) {
   try {
-    const validation = jsonschema.validate(req.body, companyUpdateSchema);
+    const comp = req.body.company;
+    const validation = jsonschema.validate(comp, companyUpdateSchema);
     if (!validation.valid) {
       const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);

@@ -64,7 +64,7 @@ describe("ensureLoggedIn", function () {
   test("works", function () {
     expect.assertions(1);
     const req = {};
-    const res = { locals: { user: { username: "test", is_admin: false } } };
+    const res = { locals: { user: { username: "test", isAdmin: false } } };
     const next = function (err) {
       expect(err).toBeFalsy();
     };
@@ -89,7 +89,7 @@ describe("ensureAdmin", () => {
     const res = { 
       locals: { 
         user: { 
-          username: "test", is_admin: true 
+          username: "test", isAdmin: true 
         } 
       } 
     };
@@ -99,12 +99,12 @@ describe("ensureAdmin", () => {
     ensureAdmin(req, res, next);
   });
   test("non-admin DOES throw error", () => {
-    expect.assertions(2);
+    expect.assertions(1);
     const req = {};
     const res = { 
       locals: { 
         user: { 
-          username: "test", is_admin: false 
+          username: "test", isAdmin: false 
         } 
       } 
     };
@@ -126,7 +126,7 @@ describe("ensureAdminOrIsRightUser", () => {
     const res = { 
       locals: { 
         user: { 
-          username: "admin", is_admin: true 
+          username: "admin", isAdmin: true 
         } 
       } 
     };
@@ -145,7 +145,7 @@ describe("ensureAdminOrIsRightUser", () => {
     const res = {
       locals: {
         user: {
-          username: "test", is_admin: false
+          username: "test", isAdmin: false
         }
       }
     };
@@ -160,7 +160,7 @@ describe("ensureAdminOrIsRightUser", () => {
     const res = { 
       locals: { 
         user: { 
-          username: "wrong", is_admin: false 
+          username: "wrong", isAdmin: false 
         } 
       } 
     };

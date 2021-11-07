@@ -28,13 +28,14 @@ const router = new express.Router();
 
 router.post("/", ensureAdmin, async function (req, res, next) {
   try {
-    const validation = jsonschema.validate(req.body, companyNewSchema);
+    const newCompany = req.body.company;
+    const validation = jsonschema.validate(newCompany, companyNewSchema);
     if (!validation.valid) {
       const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     };
-
-    const company = await Company.create(req.body);
+    
+    const company = await Company.create(newCompany);
     return res.status(201).json({ company });
   } catch (err) {
     return next(err);
@@ -106,11 +107,9 @@ router.get("/:handle", async function (req, res, next) {
 router.patch("/:handle", ensureAdmin, async function (req, res, next) {
   try {
     const comp = await Company.get(req.params.handle);
-    debugger;
-    for (let key of req.body.company) {
-      if (key !== "handle" && req.body.company[key] === comp[key]) {
-        comp[key] = req.body.company[key];
-      };
+    delete comp.handle;
+    for (let key in req.body.company) {
+      comp[key] = req.body.company[key];
     };
     const validation = jsonschema.validate(comp, companyUpdateSchema);
     if (!validation.valid) {
@@ -118,7 +117,7 @@ router.patch("/:handle", ensureAdmin, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const company = await Company.update(req.params.handle, req.body);
+    const company = await Company.update(req.params.handle, comp);
     return res.json({ company });
   } catch (err) {
     return next(err);

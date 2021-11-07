@@ -33,8 +33,8 @@ describe("POST /companies", function () {
   test("works for admins", async function () {
     const resp = await request(app)
         .post("/companies")
-        .send(newCompany)
         .send({
+          company: newCompany,
           user: {
             username: "admin",
             isAdmin: true
@@ -51,34 +51,34 @@ describe("POST /companies", function () {
     const resp = await request(app)
         .post("/companies")
         .send({
-          handle: "new",
-          numEmployees: 10,
-        })
-        .send({
+          company: {
+            handle: "new",
+            numEmployees: 10,
+          },
           user: {
             username: "admin",
             isAdmin: true
           }
         })
         .set("authorization", `Bearer ${adminToken}`);
-    expect(resp.statusCode).toEqual(401);
+    expect(resp.statusCode).toEqual(400);
   });
 
   test("bad request with invalid data", async function () {
     const resp = await request(app)
         .post("/companies")
         .send({
-          ...newCompany,
-          logoUrl: "not-a-url",
-        })
-        .send({
+          company: {
+            ...newCompany,
+            logoUrl: "not-a-url",
+          },
           user: {
             username: "admin",
             isAdmin: true
           }
         })
         .set("authorization", `Bearer ${adminToken}`);
-    expect(resp.statusCode).toEqual(401);
+    expect(resp.statusCode).toEqual(400);
   });
 });
 
@@ -240,7 +240,7 @@ describe("GET /companies/:handle", function () {
 /************************************** PATCH /companies/:handle */
 
 describe("PATCH /companies/:handle", function () {
-  test.only("works for admins", async function () {
+  test("works for admins", async function () {
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
@@ -258,7 +258,7 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.body).toEqual({
       company: {
         handle: "c1",
-        name: "C1-new",
+        name: "ch-ch-ch-changes1",
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
@@ -275,7 +275,7 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("bad request on no such company", async function () {
+  test("non-existent company not found", async function () {
     const resp = await request(app)
         .patch(`/companies/nope`)
         .send({
@@ -288,14 +288,16 @@ describe("PATCH /companies/:handle", function () {
           }
         })
         .set("authorization", `Bearer ${adminToken}`);
-    expect(resp.statusCode).toEqual(400);
+    expect(resp.statusCode).toEqual(404);
   });
 
   test("bad request on handle change attempt", async function () {
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
-          handle: "c1-new",
+          company: {
+            handle: "c1-new",
+          }
         })
         .send({
           user: {
@@ -311,7 +313,9 @@ describe("PATCH /companies/:handle", function () {
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
-          logoUrl: "not-a-url",
+          company: {
+            logoUrl: "not-a-url",
+          }
         })
         .send({
           user: {

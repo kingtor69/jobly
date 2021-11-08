@@ -27,14 +27,12 @@ describe("POST /users", function () {
     const resp = await request(app)
         .post("/users")
         .send({
-          user: {
-            username: "u-new",
-            firstName: "First-new",
-            lastName: "Last-newL",
-            password: "password-new",
-            email: "new@email.com",
-            isAdmin: false,
-          }
+          username: "u-new",
+          firstName: "First-new",
+          lastName: "Last-newL",
+          password: "password-new",
+          email: "new@email.com",
+          isAdmin: false
         })
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(201);
@@ -53,14 +51,12 @@ describe("POST /users", function () {
     const resp = await request(app)
         .post("/users")
         .send({
-          user: {
-            username: "u-new",
-            firstName: "First-new",
-            lastName: "Last-newL",
-            password: "password-new",
-            email: "new@email.com",
-            isAdmin: true,
-          }
+          username: "u-new",
+          firstName: "First-new",
+          lastName: "Last-newL",
+          password: "password-new",
+          email: "new@email.com",
+          isAdmin: true
         })
         .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(201);
@@ -93,7 +89,7 @@ describe("POST /users", function () {
     const resp = await request(app)
         .post("/users")
         .send({
-          username: "u-new",
+          username: "u-new"
         })
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(400);
@@ -182,15 +178,9 @@ describe("GET /users", function () {
 /************************************** GET /users/:username */
 
 describe("GET /users/:username", function () {
-  test("works for users", async function () {
+  test.only("works for users", async function () {
     const resp = await request(app)
         .get(`/users/u1`)
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.body).toEqual({
       user: {
@@ -212,12 +202,6 @@ describe("GET /users/:username", function () {
   test("not found if user not found", async function () {
     const resp = await request(app)
         .get(`/users/nope`)
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(404);
   });

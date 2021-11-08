@@ -29,7 +29,7 @@ const router = express.Router();
 
 router.post("/", ensureLoggedIn, async function (req, res, next) {
   try {
-    const newUser = req.body.user
+    const newUser = req.body
     const validator = jsonschema.validate(newUser, userNewSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);

@@ -121,7 +121,7 @@ describe("ensureAdminOrIsRightUser", () => {
     const req = {
       params: { 
         username: "test"
-      } 
+      }
     };
     const res = { 
       locals: { 

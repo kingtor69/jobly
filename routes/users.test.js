@@ -117,15 +117,16 @@ describe("GET /users", function () {
   test("works for users", async function () {
     const resp = await request(app)
         .get("/users")
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
         .set("authorization", `Bearer ${u1Token}`);
     expect(resp.body).toEqual({
       users: [
+        {
+          email: "admin@admin.com",
+          firstName: "Admin",
+          isAdmin: true,
+          lastName: "Adminson",
+          username: "admin",
+        },
         {
           username: "u1",
           firstName: "U1F",
@@ -202,7 +203,7 @@ describe("GET /users/:username", function () {
   test("not found if user not found", async function () {
     const resp = await request(app)
         .get(`/users/nope`)
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
   });
 });

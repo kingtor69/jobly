@@ -27,15 +27,18 @@ const router = express.Router();
  * Authorization required: login
  **/
 
-router.post("/", ensureAdmin, async function (req, res, next) {
+router.post("/", ensureLoggedIn, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, userNewSchema);
+    const newUser = req.body.user
+    const validator = jsonschema.validate(newUser, userNewSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-
-    const user = await User.register(req.body);
+    if (newUser.isAdmin && !res.locals.user.isAdmin) {
+      throw new BadRequestError()
+    }
+    const user = await User.register(newUser);
     const token = createToken(user);
     return res.status(201).json({ user, token });
   } catch (err) {

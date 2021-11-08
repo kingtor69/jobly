@@ -93,4 +93,5 @@ module.exports = {
   commonAfterEach,
   commonAfterAll,
   u1Token,
+  adminToken
 };

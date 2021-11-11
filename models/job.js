@@ -70,7 +70,12 @@ class Job {
         if (title) {
           values.push(`%${title}%`);
           filters.push(`title ILIKE $${values.length}`)
-        }
+        };
+
+        if (companyHandle) {
+            values.push(companyHandle);
+            filters.push(`company_handle = $${values.length}`);
+        };
         
         if (filters.length > 0) {
           query += " WHERE " + filters.join(" AND ");

@@ -116,6 +116,14 @@ describe("findAll", function () {
     const jobs = await Job.findAll(filter);
     expect(jobs[0].equity).toEqual("0.020");
   });
+  test("works with companyHandle filter", async() => {
+    const filter = {
+      companyHandle: "c3"
+    };
+    const jobs = await Job.findAll(filter);
+    expect(jobs.length).toEqual(1);
+    expect(jobs[0].salary).toEqual(300000);
+  });
 });
 
 /************************************** get */

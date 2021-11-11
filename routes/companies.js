@@ -13,6 +13,7 @@ const Company = require("../models/company");
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
 const companySearchSchema = require("../schemas/companySearch.json");
+const Job = require("../models/job");
 
 const router = new express.Router();
 
@@ -87,10 +88,11 @@ router.get("/", async function (req, res, next) {
 router.get("/:handle", async function (req, res, next) {
   try {
     const company = await Company.get(req.params.handle);
-    return res.json({ company });
+    const jobs = await Job.findAll({companyHandle: req.params.handle});
+    return res.json({ company, jobs });
   } catch (err) {
     return next(err);
-  }
+  };
 });
 
 /** PATCH /[handle] { fld1, fld2, ... } => { company }

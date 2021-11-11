@@ -12,7 +12,7 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-} = require("./_testCommon");
+} = require("../routes/_testCommon");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -27,7 +27,7 @@ describe("create", function () {
     companyHandle: "c3"
   };
 
-  test("works", async function () {
+  test("create new job works", async function () {
     let job = await Job.create(newJob);
     expect(job).toEqual({
       id: expect.any(Number),
@@ -69,27 +69,52 @@ describe("create", function () {
 
 describe("findAll", function () {
   test("works: no filter", async function () {
-    let jobs = await Job.findAll();
+    const jobs = await Job.findAll();
     expect(jobs).toEqual([
       {
+        id: expect.any(Number),
         title: "job1",
         salary: 100000,
         equity: "0.010",
-        companyHandle: "c1"
+        company_handle: "c1"
       },
       {
+        id: expect.any(Number),
         title: "job2",
         salary: 200000,
         equity: "0.020",
-        companyHandle: "c2"
+        company_handle: "c2"
       },
       {
+        id: expect.any(Number),
         title: "job3",
         salary: 300000,
         equity: "0.030",
-        companyHandle: "c3"
+        company_handle: "c3"
       }
     ]);
+  });
+  test("works with 'job' filter", async () => {
+    const filter = {
+      title: "job" 
+    };
+    const jobs = await Job.findAll(filter);
+    expect(jobs.length).toEqual(3);
+  });
+  test("works with salary >= 250000", async() => {
+    const filter = {
+      salaryMin: 250000
+    };
+    const jobs = await Job.findAll(filter);
+    expect(jobs[0].salary).toEqual(300000);
+  });
+  test("works with equity >= 0.015 & <= 0.025", async() => {
+    const filter = {
+      equityMin: 0.015,
+      equityMax: 0.025
+    };
+    const jobs = await Job.findAll(filter);
+    expect(jobs[0].equity).toEqual("0.020");
   });
 });
 

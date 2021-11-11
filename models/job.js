@@ -14,7 +14,7 @@ class Job {
             AND equity = $3
             AND company_handle = $4`,
             [ title, salary, equity, companyHandle ]);
-        
+
         if (duplicateCheck.rows.length !== 0) {
             throw new BadRequestError(`Duplicate job: ${duplicateCheck.rows[0]}`);
         }
@@ -35,13 +35,48 @@ class Job {
     };
 
     static async findAll(search={}) {
-        // do something with search object
-
-        const allJobs = await db.query(
-            `SELECT id, title, salary, equity, company_handle
+        let query = `
+            SELECT id, title, salary, equity, company_handle
             FROM jobs`
-        );
+
+        // do something with search
+        const filters = [];
+        const values = [];
+        const { title, salaryMin, salaryMax, equityMin, equityMax, companyHandle } = search;
+        if (salaryMin >= salaryMax) {
+            throw new ExpressError('Minimum salary can not be greater than maximum.', 400);
+        };
+        if (salaryMin) {
+          values.push(salaryMin);
+          filters.push(`salary >= $${values.length}`);
+        };
+        if (salaryMax) {
+          values.push(salaryMax);
+          filters.push(`salary <= $${values.length}`);
+        };
+
+        if (equityMin >= equityMax) {
+            throw new ExpressError('Minimum equity can not be greater than maximum.', 400);
+        };
+        if (equityMin) {
+          values.push(equityMin);
+          filters.push(`equity >= $${values.length}`);
+        };
+        if (equityMax) {
+          values.push(equityMax);
+          filters.push(`equity <= $${values.length}`);
+        };
         
+        if (title) {
+          values.push(`%${title}%`);
+          filters.push(`title ILIKE $${values.length}`)
+        }
+        
+        if (filters.length > 0) {
+          query += " WHERE " + filters.join(" AND ");
+        };
+      
+        const allJobs = await db.query(query, values);
         return allJobs.rows;
     };
 };

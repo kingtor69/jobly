@@ -228,6 +228,36 @@ describe("GET /users/:username", function () {
   });
 });
 
+describe("GET /users/:username with job applications", () => {
+  let jobApp;
+  beforeEach(async () => {
+    jobApp = await db.query(
+      `SELECT id FROM jobs
+      WHERE title = $1`,
+      ['job1']
+    );
+    await request(app)
+      .post(`/users/u1/jobs/${jobApp.jobId}`)
+      .set("authorization", `Bearer ${adminToken}`);
+  });
+  test("user can see their own job applications", async () => {
+    const userResp = await request(app)
+      .get(`/users/u1/jobs/${jobApp.jobId}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(userResp.status).toEqual(200);
+    expect(userResp.body).toEqual({
+      user: {
+        username: "u1",
+        firstName: "U1F",
+        lastName: "U1L",
+        email: "user1@user.com",
+        isAdmin: false,
+        jobs: [ jobApp.jobId ]
+      }
+    });
+  });
+}); 
+
 /************************************** PATCH /users/:username */
 
 describe("PATCH /users/:username", () => {

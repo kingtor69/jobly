@@ -58,8 +58,8 @@ router.post("/:username/jobs/:id", ensureAdminOrIsRightUser, async (req, res, ne
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     };
-    const newApp = await Application.apply(jobApp);
-    return res.status(201).json({ applied: newApp.body.job_id })
+    const newApp = await Application.apply(jobApp.username, jobApp.id);
+    return res.status(201).json(newApp)
   } catch (e) {
     return next(e);
   };

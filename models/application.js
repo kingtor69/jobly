@@ -18,7 +18,7 @@ class Application {
    * or an admin can apply on any user's behalf
    **/
 
-  static async apply( { username, jobId } ) {
+  static async apply( username, jobId ) {
     // check if this user has already applied for this job
     const result = await db.query(
         `SELECT username,
@@ -39,7 +39,7 @@ class Application {
       RETURNING job_id AS "jobId"`,
       [ username, jobId ]
     );
-    
+
     return { applied: newAppResult.rows[0].jobId };
   };
 };

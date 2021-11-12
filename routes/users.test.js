@@ -111,6 +111,25 @@ describe("POST /users", function () {
   });
 });
 
+/************************************** POST /users/:username/jobs/:id (apply for a job) */
+
+describe("POST /users/:username/jobs/:id", () => {
+  test("users can apply for a job", async() => {
+    // get jobId for "job1"
+    const job = await db.query(
+      `SELECT id FROM jobs
+      WHERE title = 'job1'`
+    );
+    const jobApp = await request(app)
+      .post(`/users/u1/jobs/${job.rows[0].id}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(jobApp.statusCode).toEqual(201);
+    expect(jobApp.body).toEqual({
+      applied: expect.any(Number)
+    });
+  })
+})
+
 /************************************** GET /users */
 
 describe("GET /users", function () {

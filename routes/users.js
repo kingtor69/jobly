@@ -73,7 +73,7 @@ router.post("/:username/jobs/:id", ensureAdminOrIsRightUser, async (req, res, ne
  * Authorization required: login
  **/
 
-router.get("/", ensureAdminOrIsRightUser, async function (req, res, next) {
+router.get("/", ensureLoggedIn, async function (req, res, next) {
   try {
     const users = await User.findAll();
     return res.json({ users });

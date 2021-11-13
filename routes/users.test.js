@@ -14,6 +14,7 @@ const {
   u1Token,
   adminToken
 } = require("./_testCommon");
+const Application = require("../models/application.js");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -123,7 +124,6 @@ describe("POST /users/:username/jobs/:id", () => {
     const jobApp = await request(app)
       .post(`/users/u1/jobs/${job.rows[0].id}`)
       .set("authorization", `Bearer ${u1Token}`);
-    debugger;
     expect(jobApp.statusCode).toEqual(201);
     expect(jobApp.body).toEqual({
       applied: expect.any(Number)
@@ -229,20 +229,18 @@ describe("GET /users/:username", function () {
 });
 
 describe("GET /users/:username with job applications", () => {
-  let jobApp;
   beforeEach(async () => {
-    jobApp = await db.query(
+    const jobApp = await db.query(
       `SELECT id FROM jobs
       WHERE title = $1`,
       ['job1']
     );
-    await request(app)
-      .post(`/users/u1/jobs/${jobApp.jobId}`)
-      .set("authorization", `Bearer ${adminToken}`);
+    await Application.apply('u1', jobApp.rows[0].id);
   });
+
   test("user can see their own job applications", async () => {
     const userResp = await request(app)
-      .get(`/users/u1/jobs/${jobApp.jobId}`)
+      .get(`/users/u1`)
       .set("authorization", `Bearer ${u1Token}`);
     expect(userResp.status).toEqual(200);
     expect(userResp.body).toEqual({
@@ -252,9 +250,32 @@ describe("GET /users/:username with job applications", () => {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
-        jobs: [ jobApp.jobId ]
+        jobs: [ expect.any(Number) ]
       }
     });
+  });
+
+  test("admin can see any user's applications", async () => {
+    const userResp = await request(app)
+      .get(`/users/u1`)
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(userResp.status).toEqual(200);
+    expect(userResp.body).toEqual({
+      user: {
+        username: "u1",
+        firstName: "U1F",
+        lastName: "U1L",
+        email: "user1@user.com",
+        isAdmin: false,
+        jobs: [ expect.any(Number) ]
+      }
+    });
+  });
+  
+  afterEach(async () => {
+    await db.query(`
+      DELETE FROM applications
+    `);
   });
 }); 
 

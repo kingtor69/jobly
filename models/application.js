@@ -42,6 +42,17 @@ class Application {
 
     return { applied: newAppResult.rows[0].jobId };
   };
+
+  static async showApplications(username) {
+    const jobApps = await db.query(
+      `SELECT job_id AS jobId
+      FROM applications
+      WHERE username = $1`,
+      [ username ]
+    );
+
+    return { jobs: jobApps.rows };
+  };
 };
 
 module.exports = Application;

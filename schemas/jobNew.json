@@ -7,34 +7,56 @@
     "default": {},
     "examples": [
         {
+<<<<<<< HEAD
             "title": "new job",
             "salary": 1000000,
             "equity": "0.050",
             "company_handle": "c1"
+=======
+            "title": "Boss",
+            "salary": 1000000,
+            "equity": 0.05,
+            "companyHandle": "c1"
+>>>>>>> 0b0d626f1d59f4aef1660d97f5e816edf497ca4a
         }
     ],
     "required": [
         "title",
         "salary",
         "equity",
+<<<<<<< HEAD
         "company_handle"
+=======
+        "companyHandle"
+>>>>>>> 0b0d626f1d59f4aef1660d97f5e816edf497ca4a
     ],
     "properties": {
         "title": {
             "$id": "#/properties/title",
             "type": "string",
             "title": "The title schema",
+<<<<<<< HEAD
             "description": "An explanation about the purpose of this instance.",
             "default": "",
             "examples": [
                 "new job"
+=======
+            "description": "Job title.",
+            "default": "",
+            "examples": [
+                "Boss"
+>>>>>>> 0b0d626f1d59f4aef1660d97f5e816edf497ca4a
             ]
         },
         "salary": {
             "$id": "#/properties/salary",
             "type": "integer",
             "title": "The salary schema",
+<<<<<<< HEAD
             "description": "An explanation about the purpose of this instance.",
+=======
+            "description": "Yearly salary for the job.",
+>>>>>>> 0b0d626f1d59f4aef1660d97f5e816edf497ca4a
             "default": 0,
             "examples": [
                 1000000
@@ -42,6 +64,7 @@
         },
         "equity": {
             "$id": "#/properties/equity",
+<<<<<<< HEAD
             "type": "string",
             "title": "The equity schema",
             "description": "An explanation about the purpose of this instance.",
@@ -55,6 +78,23 @@
             "type": "string",
             "title": "The company_handle schema",
             "description": "An explanation about the purpose of this instance.",
+=======
+            "type": "number",
+            "title": "The equity schema",
+            "description": "Equity in the company, percentage represented as Float in JavaScript and as NUMBER in PSQL with 3 digits after the decimal.",
+            "default": 0.0,
+            "minimum": 0,
+            "maximum": 1,
+            "examples": [
+                0.05
+            ]
+        },
+        "companyHandle": {
+            "$id": "#/properties/companyHandle",
+            "type": "string",
+            "title": "The companyHandle schema",
+            "description": "Reference to the company in the database by handle.",
+>>>>>>> 0b0d626f1d59f4aef1660d97f5e816edf497ca4a
             "default": "",
             "examples": [
                 "c1"

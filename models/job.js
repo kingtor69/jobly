@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
-const { sqlForPartialUpdate } = require("../helpers/sql");
+const { sqlForPartialUpdate, sqlFormatJob } = require("../helpers/sql");
 
 class Job {
     static async create( { title, salary, equity, companyHandle } ) {

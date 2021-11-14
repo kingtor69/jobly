@@ -12,11 +12,7 @@ const {
   commonAfterAll,
   adminToken
 } = require("./_testCommon");
-<<<<<<< HEAD
 const Job = require("../models/job");
-=======
-const Company = require("../models/company");
->>>>>>> 0b0d626f1d59f4aef1660d97f5e816edf497ca4a
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);

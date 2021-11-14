@@ -40,7 +40,7 @@ describe("POST /jobs", function () {
           }
         })
         .set("authorization", `Bearer ${adminToken}`);
-    // expect(resp.statusCode).toEqual(201);
+    expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       job: newJob,
     });

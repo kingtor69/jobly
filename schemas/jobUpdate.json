@@ -13,12 +13,6 @@
             "companyHandle": "c1"
         }
     ],
-    "required": [
-        "title",
-        "salary",
-        "equity",
-        "companyHandle"
-    ],
     "properties": {
         "title": {
             "$id": "#/properties/title",

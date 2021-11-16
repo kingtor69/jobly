@@ -25,11 +25,11 @@ describe("POST /jobs", function () {
   const newJob = {
     title: "new job",
     salary: 1000000,
-    equity: "0.050",
-    company_handle: "c1"
+    equity: 0.05,
+    companyHandle: "c1"
   };
 
-  test.only("works for admins", async function () {
+  test("works for admins", async function () {
     const resp = await request(app)
         .post("/jobs")
         .send({
@@ -42,7 +42,7 @@ describe("POST /jobs", function () {
         .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
-      job: newJob,
+      job: {companyHandle: newJob.companyHandle, salary: newJob.salary, title: newJob.title, equity: newJob.equity.toString(), id: expect.any(Number)},
     });
   });
 
@@ -69,7 +69,7 @@ describe("POST /jobs", function () {
         .send({
           job: {
             ...newJob,
-            logoUrl: "not-a-url",
+            equity: "five percent",
           },
           user: {
             username: "admin",
@@ -90,33 +90,26 @@ describe("GET /jobs", function () {
       jobs:
           [
             {
-              handle: "c1",
-              name: "C1",
-              description: "Desc1",
-              numEmployees: 1,
-              logoUrl: "http://c1.img",
+              id: expect.any(Number),
+              title: "job1",
+              salary: 100000,
+              equity: "0.010",
+              companyHandle: "c1"
             },
             {
-              handle: "c2",
-              name: "C2",
-              description: "Desc2",
-              numEmployees: 2,
-              logoUrl: "http://c2.img",
+              id: expect.any(Number),
+              title: "job2",
+              salary: 200000,
+              equity: "0.020",
+              companyHandle: "c2"
             },
             {
-              handle: "c3",
-              name: "C3",
-              description: "Desc3",
-              numEmployees: 3,
-              logoUrl: "http://c3.img",
-            },
-            {
-              handle: "c4",
-              name: "C4",
-              description: "Desc4",
-              numEmployees: 4,
-              logoUrl: "http://c4.img",
-            },
+              id: expect.any(Number),
+              title: "job3",
+              salary: 300000,
+              equity: "0.030",
+              companyHandle: "c3"
+            }
           ],
     });
   });
@@ -144,56 +137,85 @@ describe("Filtering GET jobs results", () => {
     const resp = await request(app)
       .get("/jobs") 
       .query({
-        name: "c"
+        companyHandle: "c"
       });
     expect(resp.statusCode).toEqual(200);
-    expect(resp.body.jobs.length).toEqual(4);
+    expect(resp.body.jobs.length).toEqual(3);
   });
 
-  test("filter by minimum number of employees", async () => {
+  test("filter by minimum salary", async () => {
     const resp = await request(app)
       .get("/jobs")
       .query({
-        minEmployees: 3
-      });
-    expect(resp.statusCode).toEqual(200);
-    expect(resp.body.jobs.length).toEqual(2);
-  });
-  
-  test("filter by maximum number of employees", async () => {
-    const resp = await request(app)
-      .get("/jobs")
-      .query({
-        maxEmployees: 1
+        salaryMin: 250000
       });
     expect(resp.statusCode).toEqual(200);
     expect(resp.body.jobs.length).toEqual(1);
   });
-  test("filter by min and max number of employees", async () => {
+  test("filter by maximum salary", async () => {
     const resp = await request(app)
       .get("/jobs")
       .query({
-        minEmployees: 1,
-        maxEmployees: 2
+        salaryMax: 150000
+      });
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.jobs.length).toEqual(1);
+  });
+  test("filter by min and max salary", async () => {
+    const resp = await request(app)
+      .get("/jobs")
+      .query({
+        salaryMin: 99000,
+        salaryMax: 250000
       });
     expect(resp.statusCode).toEqual(200);
     expect(resp.body.jobs.length).toEqual(2);
   });
+
+  test("filter by minimum equity", async () => {
+    const resp = await request(app)
+      .get("/jobs")
+      .query({
+        equityMin: 0.025
+      });
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.jobs.length).toEqual(1);
+  });
+  test("filter by maximum equity", async () => {
+    const resp = await request(app)
+      .get("/jobs")
+      .query({
+        equityMax: 0.011
+      });
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.jobs.length).toEqual(1);
+  });
+  test("filter by min and max equity", async () => {
+    const resp = await request(app)
+      .get("/jobs")
+      .query({
+        equityMin: 0.015,
+        equityMax: 0.025
+      });
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body.jobs.length).toEqual(1);
+  });
+
   test("valid data but zero results", async() => {
     const resp = await request(app)
       .get("/jobs")
       .query({
-        name: "fish"
+        title: "fish"
       });
     expect(resp.statusCode).toEqual(200);
     expect(resp.body.jobs.length).toEqual(0);
   });
-  test("invalid data: min >= max", async () => {
+  test.only("invalid data: salary min >= max", async () => {
     const badResp = await request(app)
       .get("/jobs")
       .query({
-        minEmployees: 10,
-        maxEmployees: 1
+        salaryMin: 10000000,
+        salaryMax: 10
       })
       .send({
         user: {
@@ -204,6 +226,53 @@ describe("Filtering GET jobs results", () => {
       .set("authorization", `Bearer ${adminToken}`);
     expect(badResp.statusCode).toEqual(400);
     expect(badResp.body.error.message).toEqual("Minimum can not be greater than maximum.");
+  });
+  test("invalid data: equity min >= max", async () => {
+    const badResp = await request(app)
+      .get("/jobs")
+      .query({
+        equityMin: 0.5,
+        equityMax: 0.05
+      })
+      .send({
+        user: {
+          username: "admin",
+          isAdmin: true
+        }
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(badResp.statusCode).toEqual(400);
+    expect(badResp.body.error.message).toEqual("Minimum can not be greater than maximum.");
+  });
+  test("invalid data: equity min out of range", async() => {
+    const badResp = await request(app)
+      .get('/jobs')
+      .query({
+        equityMin: -0.2
+      })
+      .send({
+        user: {
+          username: "admin",
+          isAdmin: true
+        }
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(badResp.statusCode.toEqual(400));
+  });
+  test("invalid data: equity max out of range", async() => {
+    const badResp = await request(app)
+      .get('/jobs')
+      .query({
+        equityMax: 1.5
+      })
+      .send({
+        user: {
+          username: "admin",
+          isAdmin: true
+        }
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(badResp.statusCode.toEqual(400));
   });
 });
 

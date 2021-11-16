@@ -8,16 +8,12 @@
     "examples": [
         {
             "title": "Boss",
-            "salary": 1000000,
-            "equity": 0.05,
-            "companyHandle": "c1"
+            "salaryMin": 500000,
+            "equityMin": 0.03,
+            "salaryMax": 1500000,
+            "equityMax": 0.08,
+            "companyHandle": "c"
         }
-    ],
-    "required": [
-        "title",
-        "salary",
-        "equity",
-        "companyHandle"
     ],
     "properties": {
         "title": {
@@ -30,7 +26,7 @@
                 "Boss"
             ]
         },
-        "salary": {
+        "salaryMin": {
             "$id": "#/properties/salary",
             "type": "integer",
             "title": "The salary schema",
@@ -40,7 +36,29 @@
                 1000000
             ]
         },
-        "equity": {
+        "salaryMax": {
+            "$id": "#/properties/salary",
+            "type": "integer",
+            "title": "The salary schema",
+            "description": "Yearly salary for the job.",
+            "default": 0,
+            "examples": [
+                1000000
+            ]
+        },
+        "equityMin": {
+            "$id": "#/properties/equity",
+            "type": "number",
+            "title": "The equity schema",
+            "description": "Equity in the company, percentage represented as Float in JavaScript and as NUMBER in PSQL with 3 digits after the decimal.",
+            "default": 0.0,
+            "minimum": 0,
+            "maximum": 1,
+            "examples": [
+                0.05
+            ]
+        },
+        "equityMax": {
             "$id": "#/properties/equity",
             "type": "number",
             "title": "The equity schema",

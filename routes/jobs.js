@@ -9,9 +9,9 @@ const { BadRequestError, ExpressError } = require("../expressError");
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
 const Job = require("../models/job");
 
-// const jobNewSchema = require("../schemas/jobNew.json");
-// const jobUpdateSchema = require("../schemas/jobUpdate.json");
-// const jobSearchSchema = require("../schemas/jobSearch.json");
+const jobNew = require("../schemas/jobNew.json");
+const jobSearch = require("../schemas/jobSearch.json");
+const jobUpdate = require("../schemas/jobUpdate.json");
 
 const router = new express.Router();
 
@@ -28,15 +28,17 @@ const router = new express.Router();
 router.post("/", ensureAdmin, async function (req, res, next) {
   try {
     const newJob = req.body.job;
-    const validation = jsonschema.validate(newJob, jobNewSchema);
+    const validation = jsonschema.validate(newJob, jobNew);
     if (!validation.valid) {
       const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     };
-    debugger;
-    // validation is throwing error 500
+
+    // newJob.company_handle = newJob.companyHandle;
+    // delete(newJob.companyHandle);
     
     const job = await Job.create(newJob);
+    
     return res.status(201).json({ job });
   } catch (err) {
     return next(err);
@@ -57,20 +59,34 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 router.get("/", async function (req, res, next) {
   const query = req.query;
   if (query) {
-    if (query.minEmployees !== undefined) query.minEmployees = +query.minEmployees;
-    if (query.maxEmployees !== undefined) query.maxEmployees = +query.maxEmployees;
-    if (query.minEmployees > query.maxEmployees) {
-      return next(new ExpressError("Minimum can not be greater than maximum.", 400))
+    if (query.salaryMin !== undefined) query.salaryMin = +query.salaryMin;
+    if (query.salaryMax !== undefined) query.salaryMax = +query.salaryMax;
+    if (query.equityMin !== undefined) query.equityMin = +query.equityMin;
+    if (query.equityMax !== undefined) query.equityMax = +query.equityMax;
+
+    if (query.salaryMin >= query.salaryMax) {
+        throw new ExpressError('Minimum salary can not be greater than maximum.', 400);
     };
-    const validation = jsonschema.validate(query, jobSearchSchema);
+    if (query.equityMin >= query.equityMax) {
+      throw new ExpressError('Minimum equity can not be greater than maximum.', 400);
+    };
+    const validation = jsonschema.validate(query, jobSearch);
     if (!validation.valid) {
-      const errors = result.errors.map(e => e.stack);
-      return next(new ExpressError(errors, 400));
+      const errs = validation.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    };
+    if ('companyHandle' in query) {
+      query.company_handle = query.companyHandle;
+      delete(query.companyHandle);
     };
   };
 
   try {
     const jobs = await Job.findAll(query);
+    for (let job of jobs) {
+      job.companyHandle = job.company_handle;
+      delete(job.company_handle);
+    };
     return res.json({ jobs });
   } catch (err) {
     return next(err);

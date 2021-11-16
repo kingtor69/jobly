@@ -18,7 +18,7 @@ class Job {
         if (duplicateCheck.rows.length !== 0) {
             throw new BadRequestError(`Duplicate job: ${duplicateCheck.rows[0]}`);
         }
-  
+
         const newJob = await db.query(
             `INSERT INTO jobs
             ( title, salary, equity, company_handle )
@@ -31,6 +31,7 @@ class Job {
         const job = newJob.rows[0];
         job.companyHandle = job.company_handle;
         delete(job.company_handle);
+
         return job;
     };
 
@@ -43,9 +44,6 @@ class Job {
         const filters = [];
         const values = [];
         const { title, salaryMin, salaryMax, equityMin, equityMax, companyHandle } = search;
-        if (salaryMin >= salaryMax) {
-            throw new ExpressError('Minimum salary can not be greater than maximum.', 400);
-        };
         if (salaryMin) {
           values.push(salaryMin);
           filters.push(`salary >= $${values.length}`);

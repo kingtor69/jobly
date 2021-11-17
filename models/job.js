@@ -86,7 +86,7 @@ class Job {
     static async getAJob(id) {
       try {
         const resp = await db.query(`
-        SELECT id, title, salary, equity, company_handle AS companyHandle
+        SELECT id, title, salary, equity, company_handle AS "companyHandle"
         FROM jobs WHERE id = $1
         `, [id]);
         const job = resp.rows[0];
@@ -96,28 +96,26 @@ class Job {
       };
     };
 
-    static async update({ id, title, salary, equity, companyHandle }) {
-      try {
-        debugger;
-        await db.query(`
-          UPDATE jobs
-          SET title = $1
-              salary = $2
-              equity = $3
-              company_handle = $4
-          WHERE id = $5
-        `, [title, salary, equity, companyHandle, id]);
-        const resp = await db.query(`
-          SELECT id, title, salary, equity, company_handle AS companyHandle
-          FROM jobs
-          WHERE id = $1
-        `, [id]);
-        const job = resp.rows[0];
-        return {job}
-      } catch(error) {
-        return {error};
-      };
+    static async update(id, data) {
+      const { setCols, values } = sqlForPartialUpdate(
+          data,
+          {
+            companyHandle: "company_handle"
+          });
+      const idVarIdx = "$" + (values.length + 1);
+  
+      const querySql = `UPDATE jobs 
+                        SET ${setCols} 
+                        WHERE id = ${idVarIdx} 
+                        RETURNING id, title, salary, equity, company_handle AS "companyHandle"`;
+      const result = await db.query(querySql, [...values, id]);
+      const job = result.rows[0];
+  
+      if (!job) throw new NotFoundError(`No with id ${id}`);
+  
+      return job;
     };
+
 };
 
 module.exports = Job;

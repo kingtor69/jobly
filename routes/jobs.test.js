@@ -281,7 +281,7 @@ describe("Filtering GET jobs results", () => {
 describe("GET /jobs/:handle", function () {
   test("works for anon", async function () {
     const job1 = await db.query(`
-      SELECT id, title, salary, equity, company_handle AS companyHandle 
+      SELECT id, title, salary, equity, company_handle AS "companyHandle" 
       FROM jobs LIMIT 1
     `);
     const job = job1.rows[0];
@@ -320,9 +320,9 @@ describe("GET /jobs/:handle", function () {
 /************************************** PATCH /jobs/:handle */
 
 describe("PATCH /jobs/:handle", function () {
-  test.only("works for admins", async function () {
+  test("works for admins", async function () {
     const jobs = await db.query(`
-      SELECT id, title, salary, equity, company_handle AS companyHandle
+      SELECT id, title, salary, equity, company_handle AS "companyHandle"
       FROM jobs
       LIMIT 1
     `);
@@ -344,63 +344,82 @@ describe("PATCH /jobs/:handle", function () {
   });
 
   test("unauth for anon", async function () {
+    const jobs = await db.query(`
+      SELECT id, title, salary, equity, company_handle AS "companyHandle"
+      FROM jobs
+      LIMIT 1
+    `);
+    const oldJob = jobs.rows[0];
     const resp = await request(app)
-        .patch(`/jobs/c1`)
+        .patch(`/jobs/${oldJob.id}`)
         .send({
-          name: "C1-new",
+          job: {
+            title: "ch-ch-ch-changes1"
+          }
         });
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("non-existent job not found", async function () {
+  test("non-existent job id not found", async function () {
+    const jobs = await db.query(`
+      SELECT id
+      FROM jobs
+    `);
+    let wrongId = 9999;
+    let carryOn = 0;
+    while (carryOn <= jobs.rows.length) {
+      for (let job of jobs.rows) {
+        if (job.id === wrongId) {
+          wrongId ++;
+        } else {
+          carryOn ++;
+        };
+      };
+    };
     const resp = await request(app)
-        .patch(`/jobs/nope`)
-        .send({
-          name: "new nope",
-        })
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
-        .set("authorization", `Bearer ${adminToken}`);
+      .patch(`/jobs/${wrongId}`)
+      .send({
+        job: {
+          title: "ch-ch-ch-changes1"
+        }
+      })
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
   });
 
-  test("bad request on handle change attempt", async function () {
+  test("bad request on id change attempt", async function () {
+    const jobs = await db.query(`
+      SELECT id, title, salary, equity, company_handle AS "companyHandle"
+      FROM jobs
+      LIMIT 1
+    `);
+    const oldJob = jobs.rows[0];
     const resp = await request(app)
-        .patch(`/jobs/c1`)
-        .send({
-          job: {
-            handle: "c1-new",
-          }
-        })
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
-        .set("authorization", `Bearer ${adminToken}`);
+      .patch(`/jobs/${oldJob.id}`)
+      .send({
+        job: {
+          id: 28
+        }
+      })
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
   });
 
   test("bad request on invalid data", async function () {
+    const jobs = await db.query(`
+      SELECT id, title, salary, equity, company_handle AS "companyHandle"
+      FROM jobs
+      LIMIT 1
+    `);
+    const oldJob = jobs.rows[0];
     const resp = await request(app)
-        .patch(`/jobs/c1`)
-        .send({
-          job: {
-            logoUrl: "not-a-url",
-          }
-        })
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
-        .set("authorization", `Bearer ${adminToken}`);
+      .patch(`/jobs/${oldJob.id}`)
+      .send({
+        job: {
+          salary: "lots"
+        }
+      })
+      .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
   });
 });
@@ -408,7 +427,7 @@ describe("PATCH /jobs/:handle", function () {
 /************************************** DELETE /jobs/:handle */
 
 describe("DELETE /jobs/:handle", function () {
-  test("works for admins", async function () {
+  test.only("works for admins", async function () {
     const resp = await request(app)
         .delete(`/jobs/c1`)
         .send({

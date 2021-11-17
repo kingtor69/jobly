@@ -126,25 +126,27 @@ router.get("/:id", async function (req, res, next) {
 
 router.patch("/:id", ensureAdmin, async function (req, res, next) {
   try {
-    let id = +req.params.id;
-    if (!id) throw new BadRequestError;
-    let updates = req.body.job;
-    const validation = jsonschema.validate(updates, jobUpdate);
+    if ("id" in req.body.job) {
+      throw new BadRequestError;
+    };
+    const jobResp = await Job.getAJob(req.params.id);
+    if (!jobResp.job) {
+      throw new NotFoundError;
+    };
+    const updateJob = jobResp.job
+    updateJob.equity = +updateJob.equity;
+    updateJob.salary = +updateJob.salary;
+    for (let key in req.body.job) {
+      updateJob[key] = req.body.job[key];
+    };
+    const validation = jsonschema.validate(updateJob, jobUpdate);
     if (!validation.valid) {
       const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);
-    }
-    
-    const jobWas = await Job.getAJob(id);
-    if ('companyhandle' in jobWas.job) {
-      jobWas.job.companyHandle = jobWas.job.companyhandle;
-      delete jobWas.job.companyhandle;
     };
-    const updateJob = {};
-    for(let key in jobWas.job) {
-      key in updates ? updateJob[key] = updates[key] : updateJob[key] = jobWas.job[key];
-    };
-    const job = await Job.update(updateJob);
+    updateJob.equity = updateJob.equity.toFixed(3);
+
+    const job = await Job.update(req.params.id, updateJob)
     return res.json({ job });
   } catch (err) {
     return next(err);

@@ -58,30 +58,30 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   const query = req.query;
-  if (query) {
-    if (query.salaryMin !== undefined) query.salaryMin = +query.salaryMin;
-    if (query.salaryMax !== undefined) query.salaryMax = +query.salaryMax;
-    if (query.equityMin !== undefined) query.equityMin = +query.equityMin;
-    if (query.equityMax !== undefined) query.equityMax = +query.equityMax;
-
-    if (query.salaryMin >= query.salaryMax) {
-        throw new ExpressError('Minimum salary can not be greater than maximum.', 400);
-    };
-    if (query.equityMin >= query.equityMax) {
-      throw new ExpressError('Minimum equity can not be greater than maximum.', 400);
-    };
-    const validation = jsonschema.validate(query, jobSearch);
-    if (!validation.valid) {
-      const errs = validation.errors.map(e => e.stack);
-      throw new BadRequestError(errs);
-    };
-    if ('companyHandle' in query) {
-      query.company_handle = query.companyHandle;
-      delete(query.companyHandle);
-    };
-  };
-
   try {
+    if (query) {
+      if (query.salaryMin !== undefined) query.salaryMin = +query.salaryMin;
+      if (query.salaryMax !== undefined) query.salaryMax = +query.salaryMax;
+      if (query.equityMin !== undefined) query.equityMin = +query.equityMin;
+      if (query.equityMax !== undefined) query.equityMax = +query.equityMax;
+
+      if (query.salaryMin >= query.salaryMax) {
+          throw new ExpressError('Minimum salary can not be greater than maximum.', 400);
+      };
+      if (query.equityMin >= query.equityMax) {
+        throw new ExpressError('Minimum equity can not be greater than maximum.', 400);
+      };
+      const validation = jsonschema.validate(query, jobSearch);
+      if (!validation.valid) {
+        const errs = validation.errors.map(e => e.stack);
+        throw new BadRequestError(errs);
+      };
+      if ('companyHandle' in query) {
+        query.company_handle = query.companyHandle;
+        delete(query.companyHandle);
+      };
+    };
+
     const jobs = await Job.findAll(query);
     for (let job of jobs) {
       job.companyHandle = job.company_handle;
@@ -103,7 +103,8 @@ router.get("/", async function (req, res, next) {
 
 router.get("/:handle", async function (req, res, next) {
   try {
-    const job = await Job.get(req.params.handle);
+    debugger;
+    const job = await Job.getAJob(req.params.handle);
     const jobs = await Job.findAll({jobHandle: req.params.handle});
     return res.json({ job, jobs });
   } catch (err) {

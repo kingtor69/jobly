@@ -82,6 +82,12 @@ class Job {
         const allJobs = await db.query(query, values);
         return allJobs.rows;
     };
+
+    static async getAJob(id) {
+      const job = await db.query(`
+        SELECT id, 
+      `)
+    }
 };
 
 module.exports = Job;

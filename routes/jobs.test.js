@@ -210,7 +210,7 @@ describe("Filtering GET jobs results", () => {
     expect(resp.statusCode).toEqual(200);
     expect(resp.body.jobs.length).toEqual(0);
   });
-  test.only("invalid data: salary min >= max", async () => {
+  test("invalid data: salary min >= max", async () => {
     const badResp = await request(app)
       .get("/jobs")
       .query({
@@ -225,7 +225,7 @@ describe("Filtering GET jobs results", () => {
       })
       .set("authorization", `Bearer ${adminToken}`);
     expect(badResp.statusCode).toEqual(400);
-    expect(badResp.body.error.message).toEqual("Minimum can not be greater than maximum.");
+    expect(badResp.body.error.message).toEqual("Minimum salary can not be greater than maximum.");
   });
   test("invalid data: equity min >= max", async () => {
     const badResp = await request(app)
@@ -242,7 +242,7 @@ describe("Filtering GET jobs results", () => {
       })
       .set("authorization", `Bearer ${adminToken}`);
     expect(badResp.statusCode).toEqual(400);
-    expect(badResp.body.error.message).toEqual("Minimum can not be greater than maximum.");
+    expect(badResp.body.error.message).toEqual("Minimum equity can not be greater than maximum.");
   });
   test("invalid data: equity min out of range", async() => {
     const badResp = await request(app)
@@ -257,7 +257,7 @@ describe("Filtering GET jobs results", () => {
         }
       })
       .set("authorization", `Bearer ${adminToken}`);
-    expect(badResp.statusCode.toEqual(400));
+    expect(badResp.statusCode).toEqual(400);
   });
   test("invalid data: equity max out of range", async() => {
     const badResp = await request(app)
@@ -272,32 +272,22 @@ describe("Filtering GET jobs results", () => {
         }
       })
       .set("authorization", `Bearer ${adminToken}`);
-    expect(badResp.statusCode.toEqual(400));
+    expect(badResp.statusCode).toEqual(400);
   });
 });
 
 /************************************** GET /jobs/:handle */
 
 describe("GET /jobs/:handle", function () {
-  test("works for anon", async function () {
-    const resp = await request(app).get(`/jobs/c1`);
-    expect(resp.body.job).toEqual({
-      handle: "c1",
-      name: "C1",
-      description: "Desc1",
-      numEmployees: 1,
-      logoUrl: "http://c1.img",
-    });
-    expect(resp.body.jobs.length).toEqual(1);
-    expect(resp.body.jobs).toEqual([
-      {
-        id: expect.any(Number),
-        title: "job1",
-        salary: 100000,
-        equity: "0.010",
-        job_handle: "c1"
-      }
-    ]);
+  test.only("works for anon", async function () {
+    const job1st = await db.query(`
+      SELECT id, salary, equity, company_handle AS companyHandle 
+      FROM jobs LIMIT 1
+    `);
+    const job1 = job1st.rows[0];
+    const resp = await request(app).get(`/jobs/${job1.id}`);
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body).toEqual({job});
   });
 
   test("works for anon: job w/o jobs", async function () {

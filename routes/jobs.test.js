@@ -424,20 +424,26 @@ describe("PATCH /jobs/:handle", function () {
   });
 });
 
-/************************************** DELETE /jobs/:handle */
+/************************************** DELETE /jobs/:id */
 
-describe("DELETE /jobs/:handle", function () {
+describe("DELETE /jobs/:id", function () {
   test.only("works for admins", async function () {
+    const job1st = await db.query(`
+      SELECT id
+      FROM jobs
+      LIMIT 1
+    `);
+    const id = job1st.rows[0].id;
     const resp = await request(app)
-        .delete(`/jobs/c1`)
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
+        .delete(`/jobs/${id}`)
+        // .send({
+        //   user: {
+        //     username: "admin",
+        //     isAdmin: true
+        //   }
+        // })
         .set("authorization", `Bearer ${adminToken}`);
-    expect(resp.body).toEqual({ deleted: "c1" });
+    expect(resp.body).toEqual({ deleted: id });
   });
 
   test("unauth for anon", async function () {

@@ -427,7 +427,7 @@ describe("PATCH /jobs/:handle", function () {
 /************************************** DELETE /jobs/:id */
 
 describe("DELETE /jobs/:id", function () {
-  test.only("works for admins", async function () {
+  test("works for admins", async function () {
     const job1st = await db.query(`
       SELECT id
       FROM jobs
@@ -447,21 +447,37 @@ describe("DELETE /jobs/:id", function () {
   });
 
   test("unauth for anon", async function () {
+    const job1st = await db.query(`
+      SELECT id
+      FROM jobs
+      LIMIT 1
+    `);
+    const id = job1st.rows[0].id;
     const resp = await request(app)
-        .delete(`/jobs/c1`);
+        .delete(`/jobs/${id}`);
 
     expect(resp.statusCode).toEqual(401);
   });
 
   test("not found for no such job", async function () {
+    const jobs = await db.query(`
+      SELECT id
+      FROM jobs
+    `);
+    let wrongId = 9999;
+    let carryOn = 0;
+    while (carryOn <= jobs.rows.length) {
+      for (let job of jobs.rows) {
+        if (job.id === wrongId) {
+          wrongId ++;
+        } else {
+          carryOn ++;
+        };
+      };
+    };
+
     const resp = await request(app)
-        .delete(`/jobs/nope`)
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
-          }
-        })
+        .delete(`/jobs/${wrongId}`)
         .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
   });

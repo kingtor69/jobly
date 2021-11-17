@@ -116,6 +116,18 @@ class Job {
       return job;
     };
 
+    static async remove (id) {
+      const result = await db.query(
+        `DELETE
+         FROM jobs
+         WHERE id = $1
+         RETURNING id`,
+        [id]);
+      const job = result.rows[0];
+
+      if (!job) throw new NotFoundError(`No job ${id}`);
+    };
+    
 };
 
 module.exports = Job;

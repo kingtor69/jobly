@@ -158,10 +158,12 @@ router.patch("/:id", ensureAdmin, async function (req, res, next) {
  * Authorization: login
  */
 
-router.delete("/:handle", ensureAdmin, async function (req, res, next) {
+router.delete("/:id", ensureAdmin, async function (req, res, next) {
   try {
-    await Job.remove(req.params.handle);
-    return res.json({ deleted: req.params.handle });
+    let id = +req.params.id;
+    if (!id) throw new BadRequestError;
+    await Job.remove(req.params.id);
+    return res.json({ deleted: id });
   } catch (err) {
     return next(err);
   }

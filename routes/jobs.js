@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError, ExpressError } = require("../expressError");
+const { BadRequestError, ExpressError, NotFoundError } = require("../expressError");
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
 const Job = require("../models/job");
 
@@ -101,12 +101,13 @@ router.get("/", async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/:handle", async function (req, res, next) {
+router.get("/:id", async function (req, res, next) {
   try {
-    debugger;
-    const job = await Job.getAJob(req.params.handle);
-    const jobs = await Job.findAll({jobHandle: req.params.handle});
-    return res.json({ job, jobs });
+    let id = +req.params.id;
+    if (!id) throw new BadRequestError;
+    const job = await Job.getAJob(req.params.id);
+    if (!job.job) throw new NotFoundError;
+    return res.json(job);
   } catch (err) {
     return next(err);
   };
@@ -123,20 +124,27 @@ router.get("/:handle", async function (req, res, next) {
  * Authorization required: login
  */
 
-router.patch("/:handle", ensureAdmin, async function (req, res, next) {
+router.patch("/:id", ensureAdmin, async function (req, res, next) {
   try {
-    const comp = await Job.get(req.params.handle);
-    delete comp.handle;
-    for (let key in req.body.job) {
-      comp[key] = req.body.job[key];
-    };
-    const validation = jsonschema.validate(comp, jobUpdateSchema);
+    let id = +req.params.id;
+    if (!id) throw new BadRequestError;
+    let updates = req.body.job;
+    const validation = jsonschema.validate(updates, jobUpdate);
     if (!validation.valid) {
       const errs = validation.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-
-    const job = await Job.update(req.params.handle, comp);
+    
+    const jobWas = await Job.getAJob(id);
+    if ('companyhandle' in jobWas.job) {
+      jobWas.job.companyHandle = jobWas.job.companyhandle;
+      delete jobWas.job.companyhandle;
+    };
+    const updateJob = {};
+    for(let key in jobWas.job) {
+      key in updates ? updateJob[key] = updates[key] : updateJob[key] = jobWas.job[key];
+    };
+    const job = await Job.update(updateJob);
     return res.json({ job });
   } catch (err) {
     return next(err);

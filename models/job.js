@@ -84,10 +84,40 @@ class Job {
     };
 
     static async getAJob(id) {
-      const job = await db.query(`
-        SELECT id, 
-      `)
-    }
+      try {
+        const resp = await db.query(`
+        SELECT id, title, salary, equity, company_handle AS companyHandle
+        FROM jobs WHERE id = $1
+        `, [id]);
+        const job = resp.rows[0];
+        return {job};
+      } catch(error) {
+        return {error};
+      };
+    };
+
+    static async update({ id, title, salary, equity, companyHandle }) {
+      try {
+        debugger;
+        await db.query(`
+          UPDATE jobs
+          SET title = $1
+              salary = $2
+              equity = $3
+              company_handle = $4
+          WHERE id = $5
+        `, [title, salary, equity, companyHandle, id]);
+        const resp = await db.query(`
+          SELECT id, title, salary, equity, company_handle AS companyHandle
+          FROM jobs
+          WHERE id = $1
+        `, [id]);
+        const job = resp.rows[0];
+        return {job}
+      } catch(error) {
+        return {error};
+      };
+    };
 };
 
 module.exports = Job;

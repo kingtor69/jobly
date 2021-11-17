@@ -279,61 +279,67 @@ describe("Filtering GET jobs results", () => {
 /************************************** GET /jobs/:handle */
 
 describe("GET /jobs/:handle", function () {
-  test.only("works for anon", async function () {
-    const job1st = await db.query(`
-      SELECT id, salary, equity, company_handle AS companyHandle 
+  test("works for anon", async function () {
+    const job1 = await db.query(`
+      SELECT id, title, salary, equity, company_handle AS companyHandle 
       FROM jobs LIMIT 1
     `);
-    const job1 = job1st.rows[0];
-    const resp = await request(app).get(`/jobs/${job1.id}`);
+    const job = job1.rows[0];
+    const resp = await request(app).get(`/jobs/${job.id}`);
     expect(resp.statusCode).toEqual(200);
     expect(resp.body).toEqual({job});
   });
 
-  test("works for anon: job w/o jobs", async function () {
-    const resp = await request(app).get(`/jobs/c4`);
-    expect(resp.body.job).toEqual({
-      handle: "c4",
-      name: "C4",
-      description: "Desc4",
-      numEmployees: 4,
-      logoUrl: "http://c4.img",
-    });
+  test("not found for no such id", async function () {
+    const jobs = await db.query(`
+      SELECT id
+      FROM jobs
+    `);
+    let wrongId = 9999;
+    let carryOn = 0;
+    while (carryOn <= jobs.rows.length) {
+      for (let job of jobs.rows) {
+        if (job.id === wrongId) {
+          wrongId ++;
+        } else {
+          carryOn ++;
+        };
+      };
+    };
+    const resp = await request(app)
+      .get(`/jobs/${wrongId}`);
+    expect(resp.statusCode).toEqual(404);
   });
-
-  test("not found for no such job", async function () {
+  test("bad request if id is formatted incorrectly", async() => {
     const resp = await request(app)
       .get(`/jobs/nope`);
-      expect(resp.statusCode).toEqual(404);
+    expect(resp.statusCode).toEqual(400);
   });
 });
 
 /************************************** PATCH /jobs/:handle */
 
 describe("PATCH /jobs/:handle", function () {
-  test("works for admins", async function () {
+  test.only("works for admins", async function () {
+    const jobs = await db.query(`
+      SELECT id, title, salary, equity, company_handle AS companyHandle
+      FROM jobs
+      LIMIT 1
+    `);
+    const oldJob = jobs.rows[0];
     const resp = await request(app)
-        .patch(`/jobs/c1`)
+        .patch(`/jobs/${oldJob.id}`)
         .send({
           job: {
-            name: "ch-ch-ch-changes1"
-          }
-        })
-        .send({
-          user: {
-            username: "admin",
-            isAdmin: true
+            title: "ch-ch-ch-changes1"
           }
         })
         .set("authorization", `Bearer ${adminToken}`);
     expect(resp.body).toEqual({
       job: {
-        handle: "c1",
-        name: "ch-ch-ch-changes1",
-        description: "Desc1",
-        numEmployees: 1,
-        logoUrl: "http://c1.img",
-      },
+        ...oldJob,
+        title: "ch-ch-ch-changes1",
+      }
     });
   });
 

@@ -35,9 +35,11 @@ To run the tests:
  | `/companies` | GET | search for companies | | { name, minEmployees, maxEmployees } | `../schemas/companySearch.json` |
  | `/companies/:handle` | GET | get information on a specific company | | |
  | `/companies/:handle` | PATCH | edit company information | admin token | { name, description, numEmployees, logoUrl } | `../schemas/companyUpdate.json` |
+ | `/companies/:handle` | DELETE | delete a company | admin token | | |
  | :---- | :----- | :-------- | :------ |
- | `/jobs` | POST | create new company | admin token | { name, handle, description, numEmployees, logoUrl } | `../schemas/jobNew.json` | 
+ | `/jobs` | POST | create new job | admin token | { title, salary, equity, companyHandle } | `../schemas/jobNew.json` | 
  | `/jobs` | GET | list all jobs | | | |
- | `/jobs` | GET | search for jobs | | { title, minEmployees, maxEmployees } | `../schemas/jobSearch.json` |
- | `/jobs/:handle` | GET | get information on a specific company | | |
- | `/jobs/:handle` | PATCH | edit company information | admin token | { name, description, numEmployees, logoUrl } | `../schemas/jobUpdate.json` |
+ | `/jobs` | GET | search for jobs | | { title, salaryMin, salaryMax, equityMin, equityMax, companyHandle } | `../schemas/jobSearch.json` |
+ | `/jobs/:id` | GET | get information on a specific job | | |
+ | `/jobs/:id` | PATCH | edit job information | admin token | { title, salary, equity, companyHandle } | `../schemas/jobUpdate.json` |
+ | `/jobs/:id` | DELETE | delete a job | admin token | | |
